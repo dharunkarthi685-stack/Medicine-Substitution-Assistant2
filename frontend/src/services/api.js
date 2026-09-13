@@ -1,22 +1,8 @@
 import axios from 'axios';
 
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:8000/api';
-    }
-    // Production on Vercel (same-origin /api routing)
-    return '/api';
-  }
-  return '/api';
-};
-
-
-const API_BASE_URL = getApiBaseUrl();
+// The browser always calls the API through the current origin. Vite proxies
+// this path to Django only during local development.
+const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

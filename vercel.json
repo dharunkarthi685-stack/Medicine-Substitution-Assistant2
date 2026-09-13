@@ -1,46 +1,57 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/core/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.12"
-      }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
     },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+    "backend": {
+      "root": "backend"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/core/wsgi.py"
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/admin/(.*)",
-      "dest": "backend/core/wsgi.py"
+      "source": "/admin",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/static/(.*)",
-      "dest": "backend/core/wsgi.py"
+      "source": "/admin/(.*)",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/media/(.*)",
-      "dest": "backend/core/wsgi.py"
+      "source": "/static/(.*)",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/media/(.*)",
+      "destination": {
+        "service": "backend"
+      }
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
     }
   ]
 }
