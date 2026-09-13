@@ -35,7 +35,8 @@
       "dest": "backend/core/wsgi.py"
     },
     {
-      "handle": "filesystem"
+      "src": "/",
+      "dest": "/index.html"
     },
     {
       "src": "/(.*)",
