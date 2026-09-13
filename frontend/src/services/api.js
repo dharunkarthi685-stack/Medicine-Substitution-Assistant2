@@ -12,8 +12,9 @@ const getApiBaseUrl = () => {
     // Production on Vercel (same-origin /api routing)
     return '/api';
   }
-  return 'http://localhost:8000/api';
+  return '/api';
 };
+
 
 const API_BASE_URL = getApiBaseUrl();
 
