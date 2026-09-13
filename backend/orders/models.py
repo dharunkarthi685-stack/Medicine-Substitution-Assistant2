@@ -1,7 +1,12 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from medicines.models import Medicine
+
+
+def prescription_upload_path(instance, filename):
+    return f'prescriptions/order_{instance.order_number}/{filename}'
 
 class Order(models.Model):
     FULFILLMENT_CHOICES = (
@@ -19,11 +24,20 @@ class Order(models.Model):
         ('REFUNDED', 'Refunded'),
     )
     ORDER_STATUS_CHOICES = (
+        ('PENDING_PRESCRIPTION_VERIFICATION', 'Pending Prescription Verification'),
+        ('APPROVED_PAYMENT_PENDING', 'Approved / Payment Pending'),
+        ('PRESCRIPTION_REJECTED', 'Prescription Rejected'),
         ('PLACED', 'Order Placed'),
         ('CONFIRMED', 'Confirmed by Pharmacy'),
         ('SHIPPED', 'Out for Delivery / Ready for Pickup'),
         ('DELIVERED', 'Delivered / Completed'),
         ('CANCELLED', 'Cancelled'),
+    )
+    PRESCRIPTION_STATUS_CHOICES = (
+        ('NOT_REQUIRED', 'Not Required'),
+        ('PENDING', 'Pending Verification'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
     )
 
     order_number = models.CharField(max_length=50, unique=True, db_index=True)
@@ -37,11 +51,20 @@ class Order(models.Model):
     shipping_city = models.CharField(max_length=100)
     shipping_state = models.CharField(max_length=100)
     shipping_pincode = models.CharField(max_length=10)
+    prescription_file = models.FileField(
+        upload_to=prescription_upload_path,
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
+    )
+    prescription_status = models.CharField(
+        max_length=20, choices=PRESCRIPTION_STATUS_CHOICES, default='NOT_REQUIRED', db_index=True
+    )
 
     # Payment & Financials
     payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES, default='RAZORPAY')
     payment_status = models.CharField(max_length=30, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
-    order_status = models.CharField(max_length=30, choices=ORDER_STATUS_CHOICES, default='PLACED')
+    order_status = models.CharField(max_length=40, choices=ORDER_STATUS_CHOICES, default='PLACED', db_index=True)
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

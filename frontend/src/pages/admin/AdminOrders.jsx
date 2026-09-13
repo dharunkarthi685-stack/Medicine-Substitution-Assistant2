@@ -141,6 +141,9 @@ export default function AdminOrders() {
                   <div className="text-slate-600 dark:text-slate-300">
                     <span className="font-semibold">{order.shipping_name}</span> ({order.shipping_phone}) - {order.shipping_city}, {order.shipping_state}
                   </div>
+                  <div className="text-slate-500 dark:text-slate-400">
+                    Patient: {order.user_info?.email || 'Unavailable'} · Prescription: <span className="font-bold">{order.prescription_status}</span> · Payment: <span className="font-bold">{order.payment_status}</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -181,6 +184,9 @@ export default function AdminOrders() {
                     onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
                     className="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 font-bold focus:outline-none"
                   >
+                    <option value="PENDING_PRESCRIPTION_VERIFICATION">Pending Prescription Verification</option>
+                    <option value="APPROVED_PAYMENT_PENDING">Approved / Payment Pending</option>
+                    <option value="PRESCRIPTION_REJECTED">Prescription Rejected</option>
                     <option value="PLACED">Placed</option>
                     <option value="CONFIRMED">Confirmed</option>
                     <option value="SHIPPED">Shipped</option>

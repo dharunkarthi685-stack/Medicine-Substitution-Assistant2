@@ -34,6 +34,7 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import CSVImport from './pages/admin/CSVImport';
+import PrescriptionVerification from './pages/admin/PrescriptionVerification';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -113,6 +114,7 @@ export default function App() {
                         <Route index element={<AdminDashboard />} />
                         <Route path="medicines" element={<AdminMedicines />} />
                         <Route path="orders" element={<AdminOrders />} />
+                        <Route path="prescriptions" element={<PrescriptionVerification />} />
                         <Route path="users" element={<AdminUsers />} />
                         <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="csv-import" element={<CSVImport />} />

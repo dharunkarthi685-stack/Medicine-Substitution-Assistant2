@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Pill, Mail, Lock, User, Phone, MapPin, CheckCircle2 } from 'lucide-react';
+import { Pill, Mail, Lock, User, Phone, MapPin, CheckCircle2, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -20,7 +20,9 @@ export default function Register() {
     pincode: '600040',
     password: '',
     confirm_password: '',
+    role: 'user',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -29,6 +31,16 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.email || !formData.first_name || !formData.phone || !formData.password) {
+      error('Please fill all required fields.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      error('Password must be at least 6 characters.');
+      return;
+    }
+
     if (formData.password !== formData.confirm_password) {
       error('Passwords do not match.');
       return;
@@ -37,8 +49,15 @@ export default function Register() {
     setLoading(true);
     try {
       await register(formData);
-      success('Account created successfully! Please login.');
-      navigate('/login');
+      success('Account created successfully! Account added to quick login.');
+      navigate('/login', {
+        state: {
+          justRegistered: true,
+          registeredEmail: formData.email.trim(),
+          registeredPass: formData.password,
+          registeredName: `${formData.first_name} ${formData.last_name}`.trim() || formData.first_name,
+        },
+      });
     } catch (err) {
       console.error('Registration failed:', err);
       const errs = err.response?.data;
@@ -46,6 +65,8 @@ export default function Register() {
       if (errs && typeof errs === 'object') {
         const firstKey = Object.keys(errs)[0];
         msg = `${firstKey}: ${Array.isArray(errs[firstKey]) ? errs[firstKey][0] : errs[firstKey]}`;
+      } else if (err.message) {
+        msg = err.message;
       }
       error(msg);
     } finally {
@@ -70,6 +91,12 @@ export default function Register() {
           </p>
         </div>
 
+        {/* Feature Banner */}
+        <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 flex items-center gap-3 text-xs text-emerald-800 dark:text-emerald-300">
+          <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>Newly registered accounts are automatically added to the 1-click Quick Login demo list!</span>
+        </div>
+
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-soft space-y-4">
           
@@ -85,7 +112,7 @@ export default function Register() {
                 value={formData.first_name}
                 onChange={handleChange}
                 placeholder="Rahul"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -99,7 +126,7 @@ export default function Register() {
                 value={formData.last_name}
                 onChange={handleChange}
                 placeholder="Sharma"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
           </div>
@@ -116,7 +143,7 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="patient@example.com"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -131,7 +158,7 @@ export default function Register() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+91 98765 43210"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
           </div>
@@ -146,7 +173,7 @@ export default function Register() {
               value={formData.address}
               onChange={handleChange}
               placeholder="Door No, Street Name, Landmark"
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
             />
           </div>
 
@@ -160,7 +187,7 @@ export default function Register() {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
             <div>
@@ -172,7 +199,7 @@ export default function Register() {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
             <div>
@@ -184,24 +211,34 @@ export default function Register() {
                 name="pincode"
                 value={formData.pincode}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Password *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Password *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                >
+                  {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  <span>{showPassword ? 'Hide' : 'Show'}</span>
+                </button>
+              </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
 
@@ -210,13 +247,13 @@ export default function Register() {
                 Confirm Password *
               </label>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 name="confirm_password"
                 value={formData.confirm_password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
               />
             </div>
           </div>
@@ -230,7 +267,7 @@ export default function Register() {
                 : 'bg-emerald-600 hover:bg-emerald-700 hover:scale-[1.01] active:scale-[0.99]'
             }`}
           >
-            <span>{loading ? 'Creating Account...' : 'Complete Registration'}</span>
+            <span>{loading ? 'Creating Account & Registering...' : 'Complete Registration'}</span>
           </button>
 
           <div className="pt-2 text-center text-xs text-slate-500 dark:text-slate-400">

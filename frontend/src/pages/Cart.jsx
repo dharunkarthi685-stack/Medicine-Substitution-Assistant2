@@ -4,7 +4,6 @@ import {
   ShoppingCart,
   Trash2,
   ArrowRight,
-  ShieldAlert,
   Sparkles,
   ArrowLeft,
   Pill,
@@ -60,16 +59,6 @@ export default function Cart() {
       </div>
 
       <MedicalDisclaimer compact />
-
-      {/* Prescription Warning Banner */}
-      {hasPrescriptionItems && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs sm:text-sm">
-          <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-          <div>
-            <span className="font-bold">Prescription Notice:</span> One or more items in your cart require a valid prescription. Please ensure you have a physician's prescription ready for presentation or delivery verification.
-          </div>
-        </div>
-      )}
 
       {/* Cart Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

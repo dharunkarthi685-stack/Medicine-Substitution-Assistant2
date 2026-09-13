@@ -14,6 +14,7 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     user_info = UserProfileSerializer(source='user', read_only=True)
     has_transaction = serializers.SerializerMethodField()
+    prescription_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -21,7 +22,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'id', 'order_number', 'user', 'user_info', 'fulfillment_type',
             'shipping_name', 'shipping_phone', 'shipping_address',
             'shipping_city', 'shipping_state', 'shipping_pincode',
-            'payment_method', 'payment_status', 'order_status',
+            'prescription_file', 'prescription_url',
+            'prescription_status', 'payment_method', 'payment_status', 'order_status',
             'subtotal', 'delivery_fee', 'tax_amount', 'total_amount',
             'items', 'has_transaction', 'created_at', 'updated_at'
         ]
@@ -29,6 +31,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_has_transaction(self, obj):
         return hasattr(obj, 'transaction')
+
+    def get_prescription_url(self, obj):
+        if not obj.prescription_file:
+            return None
+        request = self.context.get('request')
+        url = obj.prescription_file.url
+        return request.build_absolute_uri(url) if request else url
 
 class CartItemInputSerializer(serializers.Serializer):
     medicine_id = serializers.IntegerField()
@@ -100,6 +109,7 @@ class CreateOrderInputSerializer(serializers.Serializer):
         tax_amount = round(subtotal * Decimal('0.05'), 2) # 5% GST
         total_amount = subtotal + delivery_fee + tax_amount
 
+        requires_prescription = any(item['medicine'].prescription_required for item in order_items_to_create)
         order = Order.objects.create(
             order_number=Order.generate_order_number(),
             user=user,
@@ -107,6 +117,8 @@ class CreateOrderInputSerializer(serializers.Serializer):
             delivery_fee=delivery_fee,
             tax_amount=tax_amount,
             total_amount=total_amount,
+            prescription_status='PENDING' if requires_prescription else 'NOT_REQUIRED',
+            order_status='PENDING_PRESCRIPTION_VERIFICATION' if requires_prescription else 'PLACED',
             **validated_data
         )
 

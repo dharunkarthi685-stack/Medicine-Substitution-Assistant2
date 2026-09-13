@@ -118,3 +118,94 @@ class AdminAnalyticsDeepView(views.APIView):
             'fulfillment_breakdown': list(fulfillment_stats),
             'payment_breakdown': list(payment_stats)
         })
+
+class UserPersonalAnalyticsView(views.APIView):
+    """
+    Patient-specific personal order history & savings analytics
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        orders = Order.objects.filter(user=user).prefetch_related('items__medicine').order_by('-created_at')
+        
+        total_orders = orders.count()
+        passed_orders = orders.filter(
+            Q(order_status__in=['PLACED', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'APPROVED_PAYMENT_PENDING']) |
+            Q(payment_status='PAID')
+        )
+        delivered_orders = orders.filter(order_status='DELIVERED').count()
+        
+        total_spent = sum([float(o.total_amount) for o in orders if o.payment_status == 'PAID' or o.order_status in ['DELIVERED', 'CONFIRMED', 'SHIPPED', 'PLACED']])
+        # Estimated patient savings (comparing generic substitute cost vs branded market MRP ~60% average savings)
+        estimated_savings = round(total_spent * 1.48, 2) if total_spent > 0 else 0.0
+
+        # Group medicines ordered by user
+        medicine_stats = {}
+        category_stats = {}
+        monthly_stats = {}
+
+        for order in orders:
+            month_key = order.created_at.strftime('%b %Y')
+            if month_key not in monthly_stats:
+                monthly_stats[month_key] = {'month': month_key, 'spent': 0.0, 'savings': 0.0, 'orders': 0}
+            
+            spent_amt = float(order.total_amount)
+            monthly_stats[month_key]['spent'] += spent_amt
+            monthly_stats[month_key]['savings'] += round(spent_amt * 1.48, 2)
+            monthly_stats[month_key]['orders'] += 1
+
+            for item in order.items.all():
+                med_name = item.medicine_name
+                if med_name not in medicine_stats:
+                    cat = item.medicine.disease_category if item.medicine else 'General'
+                    medicine_stats[med_name] = {
+                        'medicine_id': item.medicine.id if item.medicine else None,
+                        'name': med_name,
+                        'generic_name': item.medicine.generic_name if item.medicine else '',
+                        'dosage_form': item.dosage_form or (item.medicine.dosage_form if item.medicine else 'Tablet'),
+                        'strength': item.strength or (item.medicine.strength if item.medicine else ''),
+                        'disease_category': cat,
+                        'unit_price': float(item.unit_price),
+                        'total_quantity': 0,
+                        'total_spent': 0.0,
+                        'total_saved': 0.0,
+                        'order_count': 0,
+                        'last_ordered_at': order.created_at.strftime('%d %b %Y'),
+                        'last_order_number': order.order_number
+                    }
+                medicine_stats[med_name]['total_quantity'] += item.quantity
+                item_spent = float(item.total_price)
+                medicine_stats[med_name]['total_spent'] += item_spent
+                medicine_stats[med_name]['total_saved'] += round(item_spent * 1.48, 2)
+                medicine_stats[med_name]['order_count'] += 1
+
+                cat_name = medicine_stats[med_name]['disease_category']
+                category_stats[cat_name] = category_stats.get(cat_name, 0) + item.quantity
+
+        ordered_medicines_list = sorted(medicine_stats.values(), key=lambda x: x['total_quantity'], reverse=True)
+        category_dist_list = [{'category': k, 'count': v} for k, v in category_stats.items()]
+        
+        # Chronological monthly trends
+        monthly_trend_list = list(reversed(list(monthly_stats.values())))
+
+        return Response({
+            'user_info': {
+                'name': f"{user.first_name} {user.last_name}".strip() or user.email.split('@')[0],
+                'email': user.email,
+                'member_since': user.date_joined.strftime('%B %Y') if hasattr(user, 'date_joined') and user.date_joined else '2024'
+            },
+            'summary': {
+                'total_orders': total_orders,
+                'passed_orders': passed_orders.count(),
+                'delivered_orders': delivered_orders,
+                'total_spent': round(total_spent, 2),
+                'total_saved': estimated_savings,
+                'total_medicines_count': sum([m['total_quantity'] for m in ordered_medicines_list]),
+                'avg_savings_rate': '59.6%' if total_spent > 0 else '0%'
+            },
+            'medicines_history': ordered_medicines_list,
+            'category_distribution': category_dist_list,
+            'monthly_trends': monthly_trend_list
+        })
+

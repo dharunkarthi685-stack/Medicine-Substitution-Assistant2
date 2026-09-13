@@ -5,6 +5,7 @@ import {
   Pill,
   FileSpreadsheet,
   Package,
+  FileCheck2,
   Users,
   BarChart3,
   ArrowLeft,
@@ -17,6 +18,7 @@ export default function AdminLayout() {
     { name: 'Medicines Inventory', path: '/admin/medicines', icon: Pill },
     { name: 'Bulk CSV Import', path: '/admin/csv-import', icon: FileSpreadsheet },
     { name: 'Order Management', path: '/admin/orders', icon: Package },
+    { name: 'Prescription Verification', path: '/admin/prescriptions', icon: FileCheck2 },
     { name: 'User Accounts', path: '/admin/users', icon: Users },
     { name: 'Deep Analytics', path: '/admin/analytics', icon: BarChart3 },
   ];

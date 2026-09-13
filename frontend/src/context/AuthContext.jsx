@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/authService';
+import {
+  authService,
+  getAllAvailableAccounts,
+  getRegisteredAccounts,
+  saveRegisteredAccount,
+  removeRegisteredAccount,
+} from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -9,6 +15,7 @@ export function AuthProvider({ children }) {
     return saved ? JSON.parse(saved) : null;
   });
   const [loading, setLoading] = useState(true);
+  const [savedAccounts, setSavedAccounts] = useState(() => getAllAvailableAccounts());
 
   useEffect(() => {
     const initAuth = async () => {
@@ -19,7 +26,7 @@ export function AuthProvider({ children }) {
           setUser(profile);
           localStorage.setItem('med_user', JSON.stringify(profile));
         } catch (err) {
-          console.error('Failed to restore user session:', err);
+          console.warn('Could not refresh remote profile, preserving local session:', err);
         }
       }
       setLoading(false);
@@ -30,8 +37,18 @@ export function AuthProvider({ children }) {
     const handleLogoutEvent = () => {
       setUser(null);
     };
+
+    const handleAccountsUpdated = () => {
+      setSavedAccounts(getAllAvailableAccounts());
+    };
+
     window.addEventListener('auth:logout', handleLogoutEvent);
-    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
+    window.addEventListener('med:accounts-updated', handleAccountsUpdated);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogoutEvent);
+      window.removeEventListener('med:accounts-updated', handleAccountsUpdated);
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -40,12 +57,24 @@ export function AuthProvider({ children }) {
     localStorage.setItem('med_refresh_token', data.refresh);
     localStorage.setItem('med_user', JSON.stringify(data.user));
     setUser(data.user);
+    setSavedAccounts(getAllAvailableAccounts());
     return data.user;
   };
 
   const register = async (userData) => {
     const data = await authService.register(userData);
+    setSavedAccounts(getAllAvailableAccounts());
     return data;
+  };
+
+  const removeAccount = (email) => {
+    removeRegisteredAccount(email);
+    setSavedAccounts(getAllAvailableAccounts());
+  };
+
+  const addAccount = (account) => {
+    saveRegisteredAccount(account);
+    setSavedAccounts(getAllAvailableAccounts());
   };
 
   const logout = () => {
@@ -58,6 +87,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('med_user', JSON.stringify(updatedUser));
+    setSavedAccounts(getAllAvailableAccounts());
   };
 
   return (
@@ -65,10 +95,13 @@ export function AuthProvider({ children }) {
       value={{
         user,
         loading,
+        savedAccounts,
         isAuthenticated: !!user,
         isAdmin: user?.is_admin || user?.role === 'admin',
         login,
         register,
+        removeAccount,
+        addAccount,
         logout,
         updateUser,
       }}

@@ -33,6 +33,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Created Admin account: {admin_email} / adminpassword123"))
         else:
             admin_user = User.objects.get(email=admin_email)
+            admin_user.set_password('adminpassword123')
+            admin_user.is_active = True
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.role = 'admin'
+            admin_user.save(update_fields=['password', 'is_active', 'is_staff', 'is_superuser', 'role'])
+            self.stdout.write(self.style.SUCCESS(f"Reset Admin demo credentials: {admin_email} / adminpassword123"))
 
         # 3. Seed Demo Patient User
         user_email = 'patient@example.com'
@@ -52,6 +59,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Created Demo User: {user_email} / userpassword123"))
         else:
             demo_user = User.objects.get(email=user_email)
+            demo_user.set_password('userpassword123')
+            demo_user.is_active = True
+            demo_user.role = 'user'
+            demo_user.save(update_fields=['password', 'is_active', 'role'])
+            self.stdout.write(self.style.SUCCESS(f"Reset Patient demo credentials: {user_email} / userpassword123"))
 
         # 4. Seed sample historical orders for analytics and order tracking
         if Order.objects.count() < 3:

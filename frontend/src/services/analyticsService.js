@@ -6,8 +6,14 @@ export const analyticsService = {
     return response.data;
   },
 
+  getUserAnalytics: async () => {
+    const response = await api.get('/analytics/user/');
+    return response.data;
+  },
+
   getAdminDeepAnalytics: async () => {
     const response = await api.get('/analytics/admin-deep/');
     return response.data;
   },
 };
+

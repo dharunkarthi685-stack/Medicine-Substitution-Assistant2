@@ -31,7 +31,7 @@ export default function AdminDashboard() {
         ]);
         setPlatformData(plat);
         setDeepData(deep);
-        setRecentOrders(orders.slice?.(0, 5) || []);
+        setRecentOrders(orders || []);
       } catch (err) {
         console.error('Failed to load admin stats:', err);
       } finally {
@@ -47,12 +47,17 @@ export default function AdminDashboard() {
 
   const kpis = platformData?.kpis || {};
   const stockHealth = platformData?.stock_health || {};
+  const orderSummary = {
+    pending: recentOrders.filter(o => o.order_status === 'PENDING_PRESCRIPTION_VERIFICATION').length,
+    approved: recentOrders.filter(o => o.order_status === 'APPROVED_PAYMENT_PENDING').length,
+    rejected: recentOrders.filter(o => o.order_status === 'PRESCRIPTION_REJECTED').length,
+  };
 
   return (
     <div className="space-y-8">
       
       {/* Overview Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-soft space-y-1">
           <span className="text-xs text-slate-400 font-semibold block">Total Catalog Items</span>
@@ -63,6 +68,13 @@ export default function AdminDashboard() {
             <span>Manage Catalog</span> →
           </Link>
         </div>
+        <Link to="/admin/prescriptions" className="p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 shadow-soft space-y-1">
+          <span className="text-xs text-amber-700 dark:text-amber-300 font-semibold block">Pending Prescription Verification</span>
+          <div className="text-2xl font-black text-amber-700 dark:text-amber-300">{orderSummary.pending}</div>
+          <span className="text-[11px] font-bold text-amber-700">Review queue →</span>
+        </Link>
+        <div className="p-5 rounded-3xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 shadow-soft space-y-1"><span className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold block">Approved / Payment Pending</span><div className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{orderSummary.approved}</div><span className="text-[11px] text-emerald-700">Awaiting customer payment</span></div>
+        <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 shadow-soft space-y-1"><span className="text-xs text-rose-700 dark:text-rose-300 font-semibold block">Rejected Prescriptions</span><div className="text-2xl font-black text-rose-700 dark:text-rose-300">{orderSummary.rejected}</div><span className="text-[11px] text-rose-700">Cannot proceed to payment</span></div>
 
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-soft space-y-1">
           <span className="text-xs text-slate-400 font-semibold block">Total Orders</span>
@@ -92,6 +104,13 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
+      </div>
+
+      <div className="p-5 rounded-3xl bg-slate-900 text-white grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div><div className="text-[11px] text-slate-400 uppercase font-bold">Total orders</div><div className="text-xl font-black">{kpis.total_orders || 0}</div></div>
+        <div><div className="text-[11px] text-slate-400 uppercase font-bold">In stock</div><div className="text-xl font-black">{stockHealth.in_stock || 0}</div></div>
+        <div><div className="text-[11px] text-slate-400 uppercase font-bold">Out of stock</div><div className="text-xl font-black">{stockHealth.out_of_stock || 0}</div></div>
+        <div><div className="text-[11px] text-slate-400 uppercase font-bold">Low stock</div><div className="text-xl font-black">{stockHealth.low_stock || 0}</div></div>
       </div>
 
       {/* Stock & Expiry Health Banner */}
@@ -190,7 +209,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {recentOrders.map((order) => (
+              {recentOrders.slice(0, 5).map((order) => (
                 <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                   <td className="py-3 font-bold text-slate-900 dark:text-white">#{order.order_number}</td>
                   <td className="py-3 text-slate-600 dark:text-slate-300">{order.shipping_name}</td>

@@ -16,6 +16,18 @@ export const orderService = {
     return response.data;
   },
 
+  uploadPrescription: async (orderId, prescription) => {
+    const formData = new FormData();
+    formData.append('prescription', prescription);
+    const response = await api.post(`/orders/${orderId}/prescription/`, formData);
+    return response.data;
+  },
+
+  verifyPrescription: async (orderId, decision) => {
+    const response = await api.post(`/orders/${orderId}/prescription/verify/`, { decision });
+    return response.data;
+  },
+
   updateOrderStatus: async (id, data) => {
     const response = await api.patch(`/orders/${id}/`, data);
     return response.data;

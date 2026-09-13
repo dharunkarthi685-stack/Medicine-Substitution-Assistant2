@@ -157,5 +157,5 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Razorpay Credentials
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_1DP5mmOlF5G5ag')
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 's12k9jOq28f9sdj298fkshdf')
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')

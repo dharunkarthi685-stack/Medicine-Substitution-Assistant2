@@ -99,20 +99,23 @@ medicine-substitution-assistant/
    cd backend
    ```
 
-2. Create and activate a Python virtual environment:
+2. Create a Python virtual environment (Ensure Python 3.10+ is used):
    ```powershell
-   # Windows (PowerShell)
+   # Windows (PowerShell / Command Prompt)
    py -m venv venv
-   .\venv\Scripts\Activate.ps1
 
-   # Linux / macOS / Git Bash
+   # Linux / macOS
    python3 -m venv venv
-   source venv/bin/activate
    ```
 
-3. Install all dependencies:
+3. Install all dependencies using the virtual environment's Python:
    ```powershell
-   pip install -r requirements.txt
+   # Windows (Direct & Reliable - No activation issues)
+   .\venv\Scripts\python.exe -m pip install --upgrade pip
+   .\venv\Scripts\python.exe -m pip install -r requirements.txt
+
+   # Linux / macOS
+   ./venv/bin/pip install -r requirements.txt
    ```
 
 4. Configure environment variables:
@@ -125,22 +128,31 @@ medicine-substitution-assistant/
 
 5. Run database migrations:
    ```powershell
-   python manage.py makemigrations users medicines orders payments
-   python manage.py migrate
+   # Windows
+   .\venv\Scripts\python.exe manage.py makemigrations users medicines orders payments
+   .\venv\Scripts\python.exe manage.py migrate
+
+   # Linux / macOS
+   ./venv/bin/python manage.py makemigrations users medicines orders payments
+   ./venv/bin/python manage.py migrate
    ```
 
 6. Seed complete demo data (medicines, admin, users, orders):
    ```powershell
-   python manage.py seed_demo
-   ```
-   *Or seed medicines only:*
-   ```powershell
-   python manage.py seed_medicines
+   # Windows
+   .\venv\Scripts\python.exe manage.py seed_demo
+
+   # Linux / macOS
+   ./venv/bin/python manage.py seed_demo
    ```
 
 7. Start the Django Development Server:
    ```powershell
-   python manage.py runserver 8000
+   # Windows
+   .\venv\Scripts\python.exe manage.py runserver 8000
+
+   # Linux / macOS
+   ./venv/bin/python manage.py runserver 8000
    ```
    *The backend will be live at `http://localhost:8000/`.*
 
